@@ -1,0 +1,5 @@
+CREATE TABLE app_users (id UUID PRIMARY KEY, email VARCHAR(255) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(30) NOT NULL DEFAULT 'USER', created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE jobs (id UUID PRIMARY KEY, owner_id UUID NOT NULL REFERENCES app_users(id), job_type VARCHAR(80) NOT NULL, payload TEXT NOT NULL, status VARCHAR(20) NOT NULL, priority INT NOT NULL DEFAULT 0, attempts INT NOT NULL DEFAULT 0, max_attempts INT NOT NULL DEFAULT 3, scheduled_at TIMESTAMPTZ NOT NULL DEFAULT now(), created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), started_at TIMESTAMPTZ, finished_at TIMESTAMPTZ, result TEXT, last_error TEXT);
+CREATE INDEX idx_jobs_status_schedule ON jobs(status, scheduled_at, priority DESC);
+CREATE TABLE job_attempts (id BIGSERIAL PRIMARY KEY, job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE, attempt_no INT NOT NULL, worker_id VARCHAR(120), started_at TIMESTAMPTZ NOT NULL DEFAULT now(), finished_at TIMESTAMPTZ, outcome VARCHAR(20), error TEXT);
+CREATE TABLE workers (worker_id VARCHAR(120) PRIMARY KEY, last_seen TIMESTAMPTZ NOT NULL, status VARCHAR(20) NOT NULL);
