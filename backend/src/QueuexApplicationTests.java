@@ -1,1 +1,0 @@
-package com.queuex.api; import org.junit.jupiter.api.Test; import static org.junit.jupiter.api.Assertions.*; class QueuexApplicationTests {@Test void basicSanity(){assertEquals("QUEUEX","queuex".toUpperCase());}}
