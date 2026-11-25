@@ -1,0 +1,3 @@
+package com.queuex.api.controller;
+import org.springframework.data.redis.core.StringRedisTemplate;import org.springframework.web.bind.annotation.*;import java.time.*;import java.util.*;
+@RestController @RequestMapping("/api/workers") public class WorkerController {private final StringRedisTemplate redis;public WorkerController(StringRedisTemplate r){redis=r;}@GetMapping public List<Map<String,String>> list(){var out=new ArrayList<Map<String,String>>();var keys=redis.keys("queuex:worker:*");if(keys!=null)for(String k:keys){String id=k.substring("queuex:worker:".length());String v=redis.opsForValue().get(k);out.add(Map.of("workerId",id,"lastSeen",v==null?"":v,"status",v!=null&&Instant.parse(v).isAfter(Instant.now().minusSeconds(30))?"ONLINE":"OFFLINE"));}return out;}}

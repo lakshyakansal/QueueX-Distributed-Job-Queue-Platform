@@ -1,0 +1,8 @@
+package com.queuex.api.controller;
+import com.queuex.api.model.Job;import com.queuex.api.repo.UserRepository;import com.queuex.api.service.JobService;import jakarta.validation.Valid;import jakarta.validation.constraints.*;import org.springframework.http.*;import org.springframework.web.bind.annotation.*;import java.security.Principal;import java.time.Instant;import java.util.*;
+@RestController @RequestMapping("/api/jobs") public class JobController {record Create(@NotBlank String type,@NotNull Map<String,Object> payload,Integer priority,Integer maxAttempts,Instant scheduledAt){} private final JobService jobs;private final UserRepository users;public JobController(JobService j,UserRepository u){jobs=j;users=u;}private UUID owner(Principal p){return users.findByEmail(p.getName()).orElseThrow().id;}
+ @PostMapping public Job create(@Valid @RequestBody Create c,Principal p){try{return jobs.create(owner(p),c.type(),new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(c.payload()),c.priority()==null?0:c.priority(),c.maxAttempts()==null?3:Math.max(1,Math.min(10,c.maxAttempts())),c.scheduledAt());}catch(Exception e){throw new IllegalArgumentException("Invalid job payload");}}
+ @GetMapping public List<Job> list(Principal p){return jobs.list(owner(p));}@GetMapping("/{id}")public Job get(@PathVariable UUID id,Principal p){return jobs.get(id,owner(p));}
+ @PostMapping("/{id}/cancel")public Map<String,String> cancel(@PathVariable UUID id,Principal p){jobs.cancel(id,owner(p));return Map.of("status","cancelled");}
+ @PostMapping("/{id}/retry")public Job retry(@PathVariable UUID id,Principal p){return jobs.retry(id,owner(p));}
+}
